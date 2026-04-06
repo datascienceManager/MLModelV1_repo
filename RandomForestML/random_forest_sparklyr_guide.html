@@ -1,0 +1,665 @@
+
+<style>
+  :root { --accent: #1D9E75; --accent2: #534AB7; --warn: #BA7517; --danger: #A32D2D; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-mono, monospace); }
+  .wrap { padding: 1rem 0; }
+  .nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.5rem; }
+  .tab { padding: 6px 14px; font-size: 12px; font-weight: 500; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .tab:hover { background: var(--color-background-primary); color: var(--color-text-primary); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg, 12px); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: .75rem; letter-spacing: .04em; text-transform: uppercase; font-family: var(--font-sans, sans-serif); }
+  pre { background: var(--color-background-tertiary); border: 0.5px solid var(--color-border-tertiary); border-radius: 8px; padding: 1rem; font-size: 12.5px; line-height: 1.75; overflow-x: auto; font-family: var(--font-mono, monospace); white-space: pre; }
+  .kw { color: #534AB7; font-weight: 500; }
+  .fn { color: #0F6E56; }
+  .str { color: #BA7517; }
+  .cm { color: var(--color-text-tertiary); font-style: italic; }
+  .num { color: #993C1D; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; font-family: var(--font-sans, sans-serif); }
+  .badge-green { background: #EAF3DE; color: #3B6D11; }
+  .badge-purple { background: #EEEDFE; color: #3C3489; }
+  .badge-amber { background: #FAEEDA; color: #854F0B; }
+  .badge-red { background: #FCEBEB; color: #A32D2D; }
+  .badge-teal { background: #E1F5EE; color: #085041; }
+  .step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 1rem; }
+  .step-num { min-width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; font-family: var(--font-sans, sans-serif); }
+  .step-body { flex: 1; }
+  .step-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; font-family: var(--font-sans, sans-serif); }
+  .step-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; font-family: var(--font-sans, sans-serif); }
+  .tip { background: #E1F5EE; border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: .6rem 1rem; margin: .75rem 0; font-size: 12px; color: #085041; font-family: var(--font-sans, sans-serif); line-height: 1.6; }
+  .warn { background: #FAEEDA; border-left: 3px solid var(--warn); border-radius: 0 6px 6px 0; padding: .6rem 1rem; margin: .75rem 0; font-size: 12px; color: #854F0B; font-family: var(--font-sans, sans-serif); line-height: 1.6; }
+  .danger { background: #FCEBEB; border-left: 3px solid var(--danger); border-radius: 0 6px 6px 0; padding: .6rem 1rem; margin: .75rem 0; font-size: 12px; color: #A32D2D; font-family: var(--font-sans, sans-serif); line-height: 1.6; }
+  h3 { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin: 1rem 0 .5rem; font-family: var(--font-sans, sans-serif); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width:560px){ .grid2 { grid-template-columns: 1fr; } }
+  .param-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; font-family: var(--font-sans, sans-serif); }
+  .param-row:last-child { border-bottom: none; }
+  .param-name { font-weight: 500; color: var(--color-text-primary); font-family: var(--font-mono, monospace); }
+  .param-desc { color: var(--color-text-secondary); font-size: 11px; max-width: 60%; text-align: right; }
+  .tree-box { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 8px; padding: .75rem; margin: .5rem 0; font-size: 12px; font-family: var(--font-mono, monospace); line-height: 1.8; color: var(--color-text-secondary); }
+  .tree-node { color: var(--color-text-primary); font-weight: 500; }
+  .tree-leaf-churn { color: #A32D2D; }
+  .tree-leaf-active { color: #0F6E56; }
+</style>
+<div class="wrap">
+  <div class="nav">
+    <div class="tab active" onclick="show('setup')">1 · Setup</div>
+    <div class="tab" onclick="show('build')">2 · Build</div>
+    <div class="tab" onclick="show('imbalance')">3 · Imbalance</div>
+    <div class="tab" onclick="show('regularise')">4 · Regularise</div>
+    <div class="tab" onclick="show('trees')">5 · Tree Details</div>
+    <div class="tab" onclick="show('tune')">6 · Tune</div>
+    <div class="tab" onclick="show('save')">7 · Save</div>
+    <div class="tab" onclick="show('predict')">8 · Predict</div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="setup" class="section active">
+    <div class="card">
+      <div class="card-title">Install & connect to Spark</div>
+      <pre><span class="cm"># Install packages</span>
+<span class="fn">install.packages</span>(<span class="str">"sparklyr"</span>)
+<span class="fn">install.packages</span>(<span class="str">"dplyr"</span>)
+<span class="fn">install.packages</span>(<span class="str">"recipes"</span>)    <span class="cm"># for preprocessing</span>
+<span class="fn">install.packages</span>(<span class="str">"caret"</span>)      <span class="cm"># for cross-validation helpers</span>
+
+<span class="kw">library</span>(sparklyr)
+<span class="kw">library</span>(dplyr)
+<span class="kw">library</span>(recipes)
+
+<span class="cm"># Install a local Spark instance (first time only)</span>
+<span class="fn">spark_install</span>(version = <span class="str">"3.4"</span>)
+
+<span class="cm"># Connect</span>
+sc &lt;- <span class="fn">spark_connect</span>(
+  master = <span class="str">"local"</span>,          <span class="cm"># or "yarn" / "spark://host:7077"</span>
+  version = <span class="str">"3.4"</span>,
+  config = <span class="fn">spark_config</span>()
+)
+
+<span class="cm"># Load your data (CSV, Parquet, Hive table, etc.)</span>
+df_spark &lt;- <span class="fn">spark_read_csv</span>(
+  sc,
+  name = <span class="str">"churn_data"</span>,
+  path = <span class="str">"/path/to/churn.csv"</span>,
+  header = <span class="kw">TRUE</span>,
+  infer_schema = <span class="kw">TRUE</span>
+)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Exploratory check</div>
+      <pre><span class="cm"># Class balance check</span>
+df_spark <span class="kw">%>%</span>
+  <span class="fn">group_by</span>(Churn) <span class="kw">%>%</span>
+  <span class="fn">summarise</span>(n = <span class="fn">n</span>()) <span class="kw">%>%</span>
+  <span class="fn">mutate</span>(pct = n / <span class="fn">sum</span>(n) * <span class="num">100</span>)
+
+<span class="cm"># Schema & nulls</span>
+<span class="fn">sdf_schema</span>(df_spark)
+<span class="fn">sdf_describe</span>(df_spark)</pre>
+    </div>
+    <div class="tip">💡 For cluster mode, change <code>master = "yarn"</code> and pass <code>spark_home</code> if needed. All downstream code stays identical — that's the beauty of sparklyr.</div>
+  </div>
+
+  <!-- BUILD -->
+  <div id="build" class="section">
+    <div class="card">
+      <div class="card-title">Feature engineering & train/test split</div>
+      <pre><span class="cm"># ── 1. Cast label to binary integer ──────────────────</span>
+df_spark &lt;- df_spark <span class="kw">%>%</span>
+  <span class="fn">mutate</span>(
+    label = <span class="fn">ifelse</span>(Churn == <span class="str">"Yes"</span>, <span class="num">1L</span>, <span class="num">0L</span>),
+    <span class="cm"># example feature engineering</span>
+    tenure_sq = tenure * tenure,
+    avg_charges = TotalCharges / (<span class="fn">pmax</span>(tenure, <span class="num">1</span>))
+  )
+
+<span class="cm"># ── 2. Train / test split (stratified) ───────────────</span>
+splits &lt;- df_spark <span class="kw">%>%</span>
+  <span class="fn">sdf_random_split</span>(
+    training = <span class="num">0.8</span>,
+    testing  = <span class="num">0.2</span>,
+    seed     = <span class="num">42</span>
+  )
+
+train &lt;- splits<span class="kw">$</span>training
+test  &lt;- splits<span class="kw">$</span>testing</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Fit the random forest model</div>
+      <pre><span class="cm"># Feature columns (exclude ID, label, raw Churn)</span>
+feature_cols &lt;- <span class="fn">c</span>(
+  <span class="str">"tenure"</span>, <span class="str">"tenure_sq"</span>, <span class="str">"avg_charges"</span>,
+  <span class="str">"MonthlyCharges"</span>, <span class="str">"TotalCharges"</span>,
+  <span class="str">"Contract"</span>, <span class="str">"InternetService"</span>, <span class="str">"PaymentMethod"</span>
+)
+
+<span class="cm"># ── Build formula ─────────────────────────────────────</span>
+rf_formula &lt;- <span class="fn">as.formula</span>(
+  <span class="fn">paste</span>(<span class="str">"label ~"</span>, <span class="fn">paste</span>(feature_cols, collapse = <span class="str">" + "</span>))
+)
+
+<span class="cm"># ── Fit model ─────────────────────────────────────────</span>
+rf_model &lt;- <span class="fn">ml_random_forest_classifier</span>(
+  x              = train,
+  formula        = rf_formula,
+  num_trees      = <span class="num">200</span>,
+  max_depth      = <span class="num">8</span>,
+  min_instances_per_node = <span class="num">5</span>,
+  feature_subset_strategy = <span class="str">"sqrt"</span>,  <span class="cm"># "sqrt","log2","auto","all"</span>
+  subsampling_rate = <span class="num">0.8</span>,
+  seed           = <span class="num">42</span>
+)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Evaluate on test set</div>
+      <pre><span class="cm"># Predictions on test</span>
+preds &lt;- <span class="fn">ml_predict</span>(rf_model, test)
+
+<span class="cm"># Evaluators</span>
+<span class="fn">ml_binary_classification_evaluator</span>(
+  preds,
+  label_col       = <span class="str">"label"</span>,
+  raw_prediction_col = <span class="str">"rawPrediction"</span>,
+  metric_name     = <span class="str">"areaUnderROC"</span>   <span class="cm"># or "areaUnderPR"</span>
+)
+
+<span class="fn">ml_multiclass_classification_evaluator</span>(
+  preds,
+  label_col       = <span class="str">"label"</span>,
+  prediction_col  = <span class="str">"prediction"</span>,
+  metric_name     = <span class="str">"accuracy"</span>       <span class="cm"># or "f1", "weightedPrecision"</span>
+)
+
+<span class="cm"># Confusion matrix (collect to R)</span>
+preds <span class="kw">%>%</span>
+  <span class="fn">select</span>(label, prediction) <span class="kw">%>%</span>
+  <span class="fn">collect</span>() <span class="kw">%>%</span>
+  <span class="fn">table</span>()</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Feature importance</div>
+      <pre><span class="fn">ml_feature_importances</span>(rf_model, train) <span class="kw">%>%</span>
+  <span class="fn">arrange</span>(<span class="fn">desc</span>(importance)) <span class="kw">%>%</span>
+  <span class="fn">head</span>(<span class="num">15</span>)</pre>
+    </div>
+  </div>
+
+  <!-- IMBALANCE -->
+  <div id="imbalance" class="section">
+    <div class="tip">Class imbalance is common in churn — typically 15–25% churn rate. Spark RF offers several native strategies plus manual approaches.</div>
+    <div class="card">
+      <div class="card-title">Strategy 1 · class weights (native, recommended first)</div>
+      <pre><span class="cm"># Add a weight column: minority class gets higher weight</span>
+n_total &lt;- <span class="fn">sdf_nrow</span>(train)
+n_churn &lt;- train <span class="kw">%>%</span> <span class="fn">filter</span>(label == <span class="num">1</span>) <span class="kw">%>%</span> <span class="fn">sdf_nrow</span>()
+n_active &lt;- n_total - n_churn
+
+<span class="cm"># Inverse-frequency weights</span>
+w_churn  &lt;- n_total / (<span class="num">2</span> * n_churn)
+w_active &lt;- n_total / (<span class="num">2</span> * n_active)
+
+train_weighted &lt;- train <span class="kw">%>%</span>
+  <span class="fn">mutate</span>(
+    class_weight = <span class="fn">ifelse</span>(label == <span class="num">1</span>, w_churn, w_active)
+  )
+
+<span class="cm"># Pass weight column to the model</span>
+rf_model_w &lt;- <span class="fn">ml_random_forest_classifier</span>(
+  x              = train_weighted,
+  formula        = rf_formula,
+  num_trees      = <span class="num">200</span>,
+  max_depth      = <span class="num">8</span>,
+  weight_col     = <span class="str">"class_weight"</span>,   <span class="cm"># ← key argument</span>
+  seed           = <span class="num">42</span>
+)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Strategy 2 · oversampling minority in Spark</div>
+      <pre><span class="cm"># Separate classes</span>
+majority &lt;- train <span class="kw">%>%</span> <span class="fn">filter</span>(label == <span class="num">0</span>)
+minority  &lt;- train <span class="kw">%>%</span> <span class="fn">filter</span>(label == <span class="num">1</span>)
+
+<span class="cm"># Oversample minority to match majority size</span>
+ratio &lt;- <span class="fn">ceiling</span>(<span class="fn">sdf_nrow</span>(majority) / <span class="fn">sdf_nrow</span>(minority))
+minority_over &lt;- <span class="fn">sdf_sample</span>(
+  minority,
+  fraction = ratio,
+  replacement = <span class="kw">TRUE</span>,
+  seed = <span class="num">42</span>
+)
+
+train_balanced &lt;- <span class="fn">sdf_bind_rows</span>(majority, minority_over)
+
+<span class="cm"># Shuffle to avoid order bias</span>
+train_balanced &lt;- train_balanced <span class="kw">%>%</span>
+  <span class="fn">sdf_sample</span>(fraction = <span class="num">1.0</span>, replacement = <span class="kw">FALSE</span>, seed = <span class="num">99</span>)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Strategy 3 · undersampling majority</div>
+      <pre><span class="cm"># Downsample majority to minority size</span>
+target_n    &lt;- <span class="fn">sdf_nrow</span>(minority)
+under_frac  &lt;- target_n / <span class="fn">sdf_nrow</span>(majority)
+
+majority_under &lt;- <span class="fn">sdf_sample</span>(
+  majority,
+  fraction    = under_frac,
+  replacement = <span class="kw">FALSE</span>,
+  seed        = <span class="num">42</span>
+)
+
+train_under &lt;- <span class="fn">sdf_bind_rows</span>(majority_under, minority)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Strategy 4 · threshold tuning (post-model)</div>
+      <pre><span class="cm"># Default threshold = 0.5 — move it to favour recall for Churn</span>
+preds_raw &lt;- <span class="fn">ml_predict</span>(rf_model, test)
+
+preds_threshold &lt;- preds_raw <span class="kw">%>%</span>
+  <span class="fn">mutate</span>(
+    prob_churn     = <span class="fn">vector_to_array</span>(probability)[<span class="num">2</span>],
+    pred_adjusted  = <span class="fn">ifelse</span>(prob_churn >= <span class="num">0.35</span>, <span class="num">1</span>, <span class="num">0</span>)
+    <span class="cm"># Lower threshold → catches more churners (higher recall)</span>
+    <span class="cm"># Raise threshold → fewer false alarms (higher precision)</span>
+  )</pre>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">When to use what</div>
+        <div class="param-row"><span class="param-name">class_weight</span><span class="param-desc">Mild imbalance (&lt;10:1)</span></div>
+        <div class="param-row"><span class="param-name">oversample</span><span class="param-desc">Small minority class</span></div>
+        <div class="param-row"><span class="param-name">undersample</span><span class="param-desc">Huge majority, data rich</span></div>
+        <div class="param-row"><span class="param-name">threshold</span><span class="param-desc">Post-hoc precision/recall trade</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Metrics to prefer</div>
+        <div class="param-row"><span class="param-name">AUC-ROC</span><span class="param-desc badge badge-green">Always useful</span></div>
+        <div class="param-row"><span class="param-name">AUC-PR</span><span class="param-desc badge badge-green">Imbalanced datasets</span></div>
+        <div class="param-row"><span class="param-name">F1-Score</span><span class="param-desc badge badge-purple">Balance P & R</span></div>
+        <div class="param-row"><span class="param-name">Accuracy</span><span class="param-desc badge badge-red">Misleading — avoid</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGULARISE -->
+  <div id="regularise" class="section">
+    <div class="warn">⚠️ Spark's Random Forest does not expose L1/L2 penalty terms (those are for linear models). Regularisation for RF is done via <strong>structural constraints</strong> and <strong>subsampling</strong>.</div>
+    <div class="card">
+      <div class="card-title">Structural regularisation parameters</div>
+      <pre><span class="cm"># All regularisation knobs in one model call</span>
+rf_reg &lt;- <span class="fn">ml_random_forest_classifier</span>(
+  x = train,
+  formula = rf_formula,
+
+  <span class="cm"># ── Tree complexity (depth controls over-fitting) ──────</span>
+  num_trees           = <span class="num">300</span>,   <span class="cm"># more trees ≠ overfit (just slower)</span>
+  max_depth           = <span class="num">6</span>,    <span class="cm"># key lever: deeper = more overfit</span>
+  max_bins            = <span class="num">32</span>,   <span class="cm"># binning resolution for cont. features</span>
+
+  <span class="cm"># ── Minimum samples in a node (prevents tiny leaves) ──</span>
+  min_instances_per_node = <span class="num">10</span>,  <span class="cm"># ↑ = more regularised</span>
+  min_info_gain          = <span class="num">0.01</span>, <span class="cm"># split only if gain > this</span>
+
+  <span class="cm"># ── Subsampling (bagging + feature randomness) ────────</span>
+  subsampling_rate         = <span class="num">0.7</span>,   <span class="cm"># row sampling per tree</span>
+  feature_subset_strategy  = <span class="str">"sqrt"</span>, <span class="cm"># col sampling: "sqrt","log2","auto"</span>
+
+  seed = <span class="num">42</span>
+)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Parameter effects cheatsheet</div>
+      <div class="param-row"><span class="param-name">max_depth ↓</span><span class="param-desc">Less overfit, simpler trees</span></div>
+      <div class="param-row"><span class="param-name">min_instances_per_node ↑</span><span class="param-desc">Prunes small splits</span></div>
+      <div class="param-row"><span class="param-name">min_info_gain ↑</span><span class="param-desc">Only splits that matter</span></div>
+      <div class="param-row"><span class="param-name">subsampling_rate ↓</span><span class="param-desc">More diverse trees, less variance</span></div>
+      <div class="param-row"><span class="param-name">feature_subset_strategy</span><span class="param-desc">"sqrt" for classification</span></div>
+      <div class="param-row"><span class="param-name">num_trees ↑</span><span class="param-desc">Stabilises predictions (no overfit risk)</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Pre-processing regularisation (via recipes in R)</div>
+      <pre><span class="cm"># Collect sample to R, fit recipe, push features back</span>
+train_r &lt;- <span class="fn">collect</span>(<span class="fn">sample_n</span>(train, <span class="num">50000</span>))
+
+rec &lt;- <span class="fn">recipe</span>(label ~ ., data = train_r) <span class="kw">%>%</span>
+  <span class="fn">step_nzv</span>(<span class="fn">all_predictors</span>()) <span class="kw">%>%</span>        <span class="cm"># remove near-zero variance</span>
+  <span class="fn">step_corr</span>(<span class="fn">all_numeric_predictors</span>(),   <span class="cm"># remove highly correlated</span>
+            threshold = <span class="num">0.90</span>) <span class="kw">%>%</span>
+  <span class="fn">step_impute_median</span>(<span class="fn">all_numeric_predictors</span>()) <span class="kw">%>%</span>
+  <span class="fn">step_dummy</span>(<span class="fn">all_nominal_predictors</span>())
+
+rec_trained &lt;- <span class="fn">prep</span>(rec, training = train_r)</pre>
+    </div>
+  </div>
+
+  <!-- TREES -->
+  <div id="trees" class="section">
+    <div class="card">
+      <div class="card-title">Extract the full forest structure</div>
+      <pre><span class="cm"># Pull Spark ML model object</span>
+spark_model &lt;- rf_model<span class="kw">$</span>model
+
+<span class="cm"># Number of trees</span>
+spark_model<span class="kw">$</span>num_trees                  <span class="cm"># e.g. 200</span>
+
+<span class="cm"># Total nodes across all trees</span>
+spark_model<span class="kw">$</span>total_num_nodes
+
+<span class="cm"># Depth of each tree</span>
+spark_model<span class="kw">$</span>tree_weights               <span class="cm"># weights (all 1.0 for RF)</span>
+
+<span class="cm"># Convert to list of decision trees (R list)</span>
+trees &lt;- <span class="fn">ml_stage</span>(rf_model) <span class="kw">%>%</span>
+  invoke(<span class="str">"trees"</span>)                     <span class="cm"># Java/Scala call via sparklyr</span></pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Inspect a single tree as text</div>
+      <pre><span class="cm"># Get the 1st tree as a string representation</span>
+tree_1_str &lt;- <span class="fn">ml_stage</span>(rf_model) <span class="kw">%>%</span>
+  invoke(<span class="str">"trees"</span>) <span class="kw">%>%</span>
+  .[[<span class="num">1</span>]] <span class="kw">%>%</span>
+  invoke(<span class="str">"toDebugString"</span>)
+
+<span class="fn">cat</span>(tree_1_str)</pre>
+      <div class="tree-box">
+<span class="tree-node">DecisionTreeClassificationModel (depth=4, numNodes=15)</span>
+  If (feature 2 &lt;= 29.5)   <span class="cm">← tenure_sq</span>
+   If (feature 0 &lt;= 12.0)  <span class="cm">← tenure</span>
+    If (feature 4 &lt;= 65.1) <span class="cm">← MonthlyCharges</span>
+     Predict: <span class="tree-leaf-churn">1.0 (Churn)</span>
+    Else (feature 4 > 65.1)
+     Predict: <span class="tree-leaf-churn">1.0 (Churn)</span>
+   Else (feature 0 > 12.0)
+    Predict: <span class="tree-leaf-active">0.0 (Active)</span>
+  Else (feature 2 > 29.5)
+   Predict: <span class="tree-leaf-active">0.0 (Active)</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Feature importances (Gini impurity-based)</div>
+      <pre><span class="cm"># Named importance vector</span>
+importance_df &lt;- <span class="fn">ml_feature_importances</span>(rf_model, train)
+
+<span class="cm"># Visualise with ggplot2</span>
+<span class="kw">library</span>(ggplot2)
+importance_df <span class="kw">%>%</span>
+  <span class="fn">arrange</span>(<span class="fn">desc</span>(importance)) <span class="kw">%>%</span>
+  <span class="fn">head</span>(<span class="num">10</span>) <span class="kw">%>%</span>
+  <span class="fn">ggplot</span>(<span class="fn">aes</span>(x = <span class="fn">reorder</span>(feature, importance),
+             y = importance)) +
+  <span class="fn">geom_col</span>(fill = <span class="str">"#1D9E75"</span>) +
+  <span class="fn">coord_flip</span>() +
+  <span class="fn">labs</span>(title = <span class="str">"Feature Importance"</span>,
+       x = <span class="kw">NULL</span>, y = <span class="str">"Importance"</span>)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Per-tree depth & node stats</div>
+      <pre><span class="cm"># Get depth of every tree</span>
+trees_java &lt;- <span class="fn">ml_stage</span>(rf_model) <span class="kw">%>%</span>
+  invoke(<span class="str">"trees"</span>)
+
+tree_depths &lt;- <span class="fn">sapply</span>(trees_java, <span class="kw">function</span>(t) invoke(t, <span class="str">"depth"</span>))
+tree_nodes  &lt;- <span class="fn">sapply</span>(trees_java, <span class="kw">function</span>(t) invoke(t, <span class="str">"numNodes"</span>))
+
+<span class="fn">data.frame</span>(
+  tree      = <span class="fn">seq_along</span>(tree_depths),
+  depth     = tree_depths,
+  num_nodes = tree_nodes
+) <span class="kw">%>%</span> <span class="fn">summary</span>()</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Collect leaf node predictions (vote distribution)</div>
+      <pre><span class="cm"># Full probability vector from the forest</span>
+preds_full &lt;- <span class="fn">ml_predict</span>(rf_model, test) <span class="kw">%>%</span>
+  <span class="fn">mutate</span>(
+    prob_active = <span class="fn">vector_to_array</span>(probability)[<span class="num">1</span>],
+    prob_churn  = <span class="fn">vector_to_array</span>(probability)[<span class="num">2</span>],
+    raw_score   = <span class="fn">vector_to_array</span>(rawPrediction)[<span class="num">2</span>]
+    <span class="cm"># rawPrediction[2] = number of trees voting "Churn"</span>
+    <span class="cm"># e.g. rawPrediction[2] = 143 means 143/200 trees voted Churn</span>
+  )
+
+<span class="fn">collect</span>(preds_full) <span class="kw">%>%</span> <span class="fn">head</span>()</pre>
+    </div>
+  </div>
+
+  <!-- TUNE -->
+  <div id="tune" class="section">
+    <div class="card">
+      <div class="card-title">Grid search with cross-validation</div>
+      <pre><span class="cm"># ── 1. Define the pipeline ───────────────────────────</span>
+pipeline &lt;- <span class="fn">ml_pipeline</span>(sc) <span class="kw">%>%</span>
+  <span class="fn">ft_r_formula</span>(rf_formula) <span class="kw">%>%</span>
+  <span class="fn">ml_random_forest_classifier</span>(
+    label_col   = <span class="str">"label"</span>,
+    features_col = <span class="str">"features"</span>
+  )
+
+<span class="cm"># ── 2. Hyperparameter grid ───────────────────────────</span>
+param_grid &lt;- <span class="fn">list</span>(
+  random_forest_classifier = <span class="fn">list</span>(
+    num_trees  = <span class="fn">c</span>(<span class="num">100L</span>, <span class="num">200L</span>, <span class="num">300L</span>),
+    max_depth  = <span class="fn">c</span>(<span class="num">4L</span>, <span class="num">6L</span>, <span class="num">8L</span>),
+    min_instances_per_node = <span class="fn">c</span>(<span class="num">5L</span>, <span class="num">10L</span>),
+    subsampling_rate = <span class="fn">c</span>(<span class="num">0.7</span>, <span class="num">0.9</span>)
+  )
+)
+
+<span class="cm"># ── 3. Evaluator ─────────────────────────────────────</span>
+evaluator &lt;- <span class="fn">ml_binary_classification_evaluator</span>(
+  sc,
+  label_col    = <span class="str">"label"</span>,
+  metric_name  = <span class="str">"areaUnderROC"</span>
+)
+
+<span class="cm"># ── 4. Cross-validation (3-fold) ─────────────────────</span>
+cv &lt;- <span class="fn">ml_cross_validator</span>(
+  sc,
+  estimator           = pipeline,
+  estimator_param_maps = param_grid,
+  evaluator           = evaluator,
+  num_folds           = <span class="num">3</span>,
+  seed                = <span class="num">42</span>
+)
+
+cv_model &lt;- <span class="fn">ml_fit</span>(cv, train)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Inspect CV results</div>
+      <pre><span class="cm"># Average metric per parameter combination</span>
+<span class="fn">ml_validation_metrics</span>(cv_model)
+
+<span class="cm"># Best model extracted automatically</span>
+best_rf &lt;- cv_model<span class="kw">$</span>best_model
+
+<span class="cm"># Confirm best parameters</span>
+best_rf <span class="kw">%>%</span>
+  <span class="fn">ml_stage</span>(<span class="str">"random_forest_classifier"</span>) <span class="kw">%>%</span>
+  invoke(<span class="str">"getNumTrees"</span>)
+
+best_rf <span class="kw">%>%</span>
+  <span class="fn">ml_stage</span>(<span class="str">"random_forest_classifier"</span>) <span class="kw">%>%</span>
+  invoke(<span class="str">"getMaxDepth"</span>)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Train-validation split (faster alternative)</div>
+      <pre><span class="cm"># Faster than full CV — single 80/20 validation split</span>
+tvs &lt;- <span class="fn">ml_train_validation_split</span>(
+  sc,
+  estimator            = pipeline,
+  estimator_param_maps = param_grid,
+  evaluator            = evaluator,
+  train_ratio          = <span class="num">0.8</span>,
+  seed                 = <span class="num">42</span>
+)
+
+tvs_model &lt;- <span class="fn">ml_fit</span>(tvs, train)
+best_rf_tvs &lt;- tvs_model<span class="kw">$</span>best_model</pre>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Key parameters to tune</div>
+        <div class="param-row"><span class="param-name">num_trees</span><span class="param-desc">100–500</span></div>
+        <div class="param-row"><span class="param-name">max_depth</span><span class="param-desc">4–12</span></div>
+        <div class="param-row"><span class="param-name">min_instances_per_node</span><span class="param-desc">1–20</span></div>
+        <div class="param-row"><span class="param-name">subsampling_rate</span><span class="param-desc">0.5–1.0</span></div>
+        <div class="param-row"><span class="param-name">feature_subset_strategy</span><span class="param-desc">sqrt / log2 / 1/3</span></div>
+        <div class="param-row"><span class="param-name">min_info_gain</span><span class="param-desc">0.0–0.05</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Tuning strategy</div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Coarse grid first</div><div class="step-desc">Wide ranges with few values — find the region</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Fine grid</div><div class="step-desc">Narrow around the best combo from step 1</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Confirm on hold-out</div><div class="step-desc">Final eval on untouched test set</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVE -->
+  <div id="save" class="section">
+    <div class="card">
+      <div class="card-title">Save & load — ML Pipeline model</div>
+      <pre><span class="cm"># ── Save (best practice: save the full pipeline) ────</span>
+<span class="fn">ml_save</span>(
+  best_rf,                          <span class="cm"># or cv_model$best_model</span>
+  path      = <span class="str">"/models/rf_churn_v1"</span>,
+  overwrite = <span class="kw">TRUE</span>
+)
+
+<span class="cm"># ── Load back ────────────────────────────────────────</span>
+rf_loaded &lt;- <span class="fn">ml_load</span>(sc, path = <span class="str">"/models/rf_churn_v1"</span>)
+
+<span class="cm"># Verify it works</span>
+<span class="fn">ml_predict</span>(rf_loaded, test) <span class="kw">%>%</span> <span class="fn">glimpse</span>()</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Save as PMML (portable, non-Spark scoring)</div>
+      <pre><span class="kw">library</span>(sparklyr.nested)  <span class="cm"># or r2pmml</span>
+<span class="kw">library</span>(r2pmml)
+
+<span class="cm"># Collect model to R and export</span>
+rf_r &lt;- <span class="fn">ml_stage</span>(best_rf, <span class="str">"random_forest_classifier"</span>)
+
+<span class="cm"># Or use sparklyr + JPMML bridge</span>
+model_path &lt;- <span class="str">"/models/rf_churn.pmml"</span>
+rf_r <span class="kw">%>%</span>
+  invoke(<span class="str">"save"</span>, model_path)   <span class="cm"># saves native Spark format</span>
+
+<span class="cm"># For PMML export use mleap:</span>
+<span class="fn">install.packages</span>(<span class="str">"mleap"</span>)
+<span class="kw">library</span>(mleap)
+<span class="fn">ml_write_bundle</span>(best_rf, train,
+  path = <span class="str">"/models/rf_churn.zip"</span>)
+<span class="cm"># → portable bundle, score in any JVM without Spark</span></pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Version tracking best practice</div>
+      <pre><span class="cm"># Save model metadata alongside</span>
+model_meta &lt;- <span class="fn">list</span>(
+  version      = <span class="str">"v1.2"</span>,
+  trained_on   = <span class="fn">Sys.Date</span>(),
+  auc_roc      = <span class="num">0.867</span>,
+  num_trees    = <span class="num">200</span>,
+  max_depth    = <span class="num">6</span>,
+  train_rows   = <span class="fn">sdf_nrow</span>(train),
+  features     = feature_cols
+)
+<span class="fn">saveRDS</span>(model_meta, <span class="str">"/models/rf_churn_v1_meta.rds"</span>)</pre>
+    </div>
+  </div>
+
+  <!-- PREDICT -->
+  <div id="predict" class="section">
+    <div class="card">
+      <div class="card-title">Score new dataset & join back</div>
+      <pre><span class="cm"># ── 1. Load new data ─────────────────────────────────</span>
+new_data &lt;- <span class="fn">spark_read_csv</span>(
+  sc,
+  name   = <span class="str">"new_customers"</span>,
+  path   = <span class="str">"/data/new_customers.csv"</span>,
+  header = <span class="kw">TRUE</span>
+)
+
+<span class="cm"># Apply same feature engineering as training</span>
+new_data &lt;- new_data <span class="kw">%>%</span>
+  <span class="fn">mutate</span>(
+    tenure_sq    = tenure * tenure,
+    avg_charges  = TotalCharges / <span class="fn">pmax</span>(tenure, <span class="num">1</span>)
+  )
+
+<span class="cm"># ── 2. Score ─────────────────────────────────────────</span>
+scored &lt;- <span class="fn">ml_predict</span>(rf_loaded, new_data)
+
+<span class="cm"># ── 3. Extract probability & binary prediction ───────</span>
+scored_clean &lt;- scored <span class="kw">%>%</span>
+  <span class="fn">mutate</span>(
+    prob_churn  = <span class="fn">vector_to_array</span>(probability)[<span class="num">2</span>],
+    <span class="cm"># Binary label: "Churn" or "Active"</span>
+    Prediction  = <span class="fn">ifelse</span>(prediction == <span class="num">1</span>, <span class="str">"Churn"</span>, <span class="str">"Active"</span>)
+  )
+
+<span class="cm"># ── 4. Join back to original dataset ─────────────────</span>
+<span class="cm"># Keep original columns + add Prediction column</span>
+final_df &lt;- new_data <span class="kw">%>%</span>
+  <span class="fn">left_join</span>(
+    scored_clean <span class="kw">%>%</span>
+      <span class="fn">select</span>(CustomerID, prob_churn, Prediction),
+    by = <span class="str">"CustomerID"</span>
+  )
+
+<span class="cm"># Peek at result</span>
+final_df <span class="kw">%>%</span>
+  <span class="fn">select</span>(CustomerID, tenure, MonthlyCharges,
+         prob_churn, Prediction) <span class="kw">%>%</span>
+  <span class="fn">head</span>(<span class="num">10</span>) <span class="kw">%>%</span>
+  <span class="fn">collect</span>()</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Write final output</div>
+      <pre><span class="cm"># ── Save to CSV (local) ──────────────────────────────</span>
+final_df <span class="kw">%>%</span>
+  <span class="fn">collect</span>() <span class="kw">%>%</span>                    <span class="cm"># pull to R</span>
+  <span class="fn">write.csv</span>(<span class="str">"scored_customers.csv"</span>,
+            row.names = <span class="kw">FALSE</span>)
+
+<span class="cm"># ── Save to Parquet (stay in Spark / HDFS) ───────────</span>
+<span class="fn">spark_write_parquet</span>(
+  final_df,
+  path = <span class="str">"/output/churn_predictions"</span>,
+  mode = <span class="str">"overwrite"</span>
+)
+
+<span class="cm"># ── Save to Hive table ───────────────────────────────</span>
+<span class="fn">spark_write_table</span>(
+  final_df,
+  name = <span class="str">"analytics.churn_predictions"</span>,
+  mode = <span class="str">"overwrite"</span>
+)
+
+<span class="cm"># ── Disconnect ───────────────────────────────────────</span>
+<span class="fn">spark_disconnect</span>(sc)</pre>
+    </div>
+    <div class="card">
+      <div class="card-title">Sample output structure</div>
+      <pre><span class="cm"># CustomerID  tenure  MonthlyCharges  prob_churn  Prediction</span>
+<span class="cm"># ----------  ------  --------------  ----------  ----------</span>
+<span class="cm">#      C0001      3         82.45       0.874       Churn</span>
+<span class="cm">#      C0002     42         55.30       0.103       Active</span>
+<span class="cm">#      C0003      8         91.10       0.712       Churn</span>
+<span class="cm">#      C0004     60         34.20       0.034       Active</span>
+<span class="cm">#      C0005     15         67.90       0.461       Active</span></pre>
+    </div>
+    <div class="tip">💡 <strong>prob_churn</strong> gives you a continuous score for ranking customers by risk. <strong>Prediction</strong> is the binary decision. Report both — the score is often more actionable than the binary label alone.</div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
