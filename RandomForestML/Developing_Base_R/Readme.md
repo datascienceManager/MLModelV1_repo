@@ -15,3 +15,25 @@ Your README - Across the 12 sections:
 **Section 9** covers three tuning approaches: manual grid search using OOB error, `caret` cross-validation, and the built-in `tuneRF` automated search, plus a parallel `ranger` grid search.
 
 **Sections 10–12** handle saving (with a metadata bundle), scoring new data with proper factor-level alignment, left-joining predictions back as a `"Churn"`/`"Active"` column, and a full quick-reference cheatsheet of function arguments and metrics.
+
+
+
+#========= Ensemble Model ========
+
+**Section 1** opens with a taxonomy diagram explaining the three families — Bagging, Boosting, and Stacking — and a table for when to use each method.
+
+**Section 2–3** cover package setup (`randomForest`, `gbm`, `xgboost`, `lightgbm`, `glmnet`, `caretEnsemble`) and a three-way 70/15/15 train/validation/test split, which is critical for stacking to avoid leakage.
+
+**Section 4** trains five individual base learners — Random Forest, GBM, XGBoost, LightGBM, and LASSO logistic regression — each with validation AUC printed for comparison.
+
+**Section 5** is the heart of the guide — five ensemble strategies: Hard voting, Soft voting, Weighted average (with `optim()` to find optimal weights), full Stacking with out-of-fold predictions and a LASSO meta-learner, Blending (the faster variant), and `caretEnsemble` for automated stacking.
+
+**Section 6** covers regularisation for every model type including L1/L2 in XGBoost and LightGBM, structural constraints in RF and GBM, and using `lambda.1se` instead of `lambda.min` for the meta-learner.
+
+**Section 7** handles class imbalance across all models — `classwt`, `scale_pos_weight`, `is_unbalance`, ROSE, SMOTE, and per-model threshold optimisation.
+
+**Section 8** digs under the hood — feature importance comparison across all five models, SHAP values via XGBoost, GBM partial dependence plots, and a calibration plot for the ensemble.
+
+**Sections 9–11** cover parallel hyperparameter tuning (including `doParallel`), saving the entire ensemble as a single RDS bundle with metadata, and a complete scoring function that aligns factor levels, rebuilds the matrix, scores all five base models, applies all three ensemble strategies, and joins back `"Churn"`/`"Active"` predictions with `prob_stack` to the original dataset.
+
+**Section 12** produces a side-by-side AUC comparison table and overlaid ROC curves for all models. **Section 13** is a full cheatsheet with a decision flowchart for choosing which ensemble strategy to use.
